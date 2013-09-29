@@ -10,8 +10,8 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
         fail "#{resource[:http_verb].upcase} #{resource[:source]} " +
              "returned #{res.code}" unless res.code == '200'
 
-        out_file     = File.open("#{resource[:name]}",'wb')
-        length       = res['Content-Length'] && res['Content-Length'].to_i || 0
+        out_file = File.open("#{resource[:name]}",'wb')
+        length = res['Content-Length'] && res['Content-Length'].to_i || 0
         prevprogress = done = 0
         print_progress = resource[:print_progress] and length > 0
         res.read_body do |segment|
@@ -69,7 +69,14 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
     @conn.open_timeout = resource[:http_open_timeout] || nil
     if resource[:source].scheme == 'https'
       @conn.use_ssl = true
-      @conn.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      @conn.ca_path = resource[:http_ssl_ca_path] if resource[:http_ssl_ca_path]
+      @conn.ca_file = resource[:http_ssl_ca_file] if resource[:http_ssl_ca_file]
+      @conn.verify_mode = if resource[:http_ssl_verify]
+        OpenSSL::SSL::VERIFY_PEER
+      else
+        OpenSSL::SSL::VERIFY_NONE
+      end
+      @conn.verify_depth = 5
     end
     @conn
   end

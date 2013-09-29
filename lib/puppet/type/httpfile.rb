@@ -4,27 +4,14 @@ require 'uri'
 
 Puppet::Type.newtype(:httpfile) do
   @doc = <<-'EOT'
-    Fetch a file using HTTP(S). Usage:
+    Fetch a file using HTTP(S). Basic usage:
 
     httpfile { '/path/to/file.ext':
       path                      => '/path/to/file.ext',
       source                    => 'http://example.com/my_file.bin',
-      force                     => false,
-      checksum_type             => 'content_md5',
       expected_checksum         => 'b96af7576939a17ac4b2d4b6edb50ce7',
-      print_progress            => true,
-      http_open_timeout         => 5,
-      http_verb                 => post,
       http_user                 => 'foo',
       http_pass                 => 'bar',
-      http_request_content_type => 'application/json',
-      http_request_headers      => {
-        'X-Foo' => 'bar',
-      },
-      http_request_body         => '{ "file_name": "my_file.bin" }',
-      http_post_form_data       => {
-        'file_id' => 42,
-      }
     }
   EOT
 
@@ -67,12 +54,12 @@ Puppet::Type.newtype(:httpfile) do
     isrequired
   end
 
-  newparam(:force, :boolean => true, :parent => Puppet::Parameter::Boolean) do
+  newparam(:force, :boolean => true) do
     desc 'Always download the file. Default: false.'
     defaultto false
   end
 
-  newparam(:print_progress, :boolean => true, :parent => Puppet::Parameter::Boolean) do
+  newparam(:print_progress, :boolean => true) do
     desc 'Whether to print download progress or not. Default: false.'
     defaultto false
   end
@@ -99,6 +86,20 @@ Puppet::Type.newtype(:httpfile) do
     desc 'The HTTP verb to use (get or post). Default: get.'
     newvalues :get, :post
     defaultto :get
+  end
+
+  newparam(:http_ssl_verify, :boolean => true) do
+    desc 'Enable/disable HTTPS Certificate Verification. Default: false.'
+    defaultto false
+  end
+
+  newparam(:http_ssl_ca_file) do
+    desc 'Sets path of a CA certification file in PEM format.'
+  end
+
+  newparam(:http_ssl_ca_path) do
+    desc 'Sets path of a CA certification directory containing ' +
+         'certifications in PEM format'
   end
 
   newparam(:http_request_content_type) do
