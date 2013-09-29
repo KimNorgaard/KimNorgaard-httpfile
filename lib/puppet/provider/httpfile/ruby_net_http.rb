@@ -40,7 +40,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
 
     # Check if checksum checking is disabled
     if resource[:force]
-      info "force option enabled - downloading file regardless of checksum."
+      notice "force option enabled - downloading file regardless of checksum."
       return false
     end
 
@@ -52,8 +52,8 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
 
     # Check the remote checksum against the local one
     if local_checksum != remote_checksum
-      info "#{resource[:source]} checksum (#{remote_checksum}) != #{resource[:path]} " +
-           "checksum (#{local_checksum}). Will fetch new file."
+      notice "#{resource[:source]} checksum (#{remote_checksum}) != #{resource[:path]} " +
+             "checksum (#{local_checksum}). Will fetch new file."
       return false
     end
 
