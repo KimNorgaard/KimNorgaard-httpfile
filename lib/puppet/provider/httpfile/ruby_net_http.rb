@@ -1,8 +1,5 @@
 require 'net/http'
 
-# @todo support other checksum types (sha sidecar, md5 sidecar, etag)
-# @todo support checking file checksum after download using sidecar
-# @todo better ssl support
 Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
   desc 'Manage files fetched via HTTP.'
 
