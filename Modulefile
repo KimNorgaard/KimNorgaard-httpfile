@@ -6,5 +6,3 @@ summary      'Custom type for downloading files via HTTP and HTTPS'
 description  'Uses checksums to determine whether the file should be downloaded or not'
 license      'The MIT License (MIT)'
 project_page 'https://github.com/KimNorgaard/KimNorgaard-httpfile'
-
-dependency 'username/name', '>= 1.2.0'
