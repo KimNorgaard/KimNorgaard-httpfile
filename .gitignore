@@ -2,3 +2,4 @@ metadata.json
 .DS_Store
 metadata.json
 coverage/
+pkg/
