@@ -118,8 +118,16 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
   def local_checksum
     return @local_checksum if defined?(@local_checksum)
     @local_checksum = case resource[:checksum_type]
-      when :content_md5
+      when :content_md5, :sidecar_md5
         checksum = Digest::MD5.new
+        File.open(resource[:name], "rb") do |f|
+          while (data = f.read(4096))
+            checksum << data
+          end
+        end
+        checksum.hexdigest
+      when :sidecar_sha1
+        checksum = Digest::SHA1.new
         File.open(resource[:name], "rb") do |f|
           while (data = f.read(4096))
             checksum << data
@@ -143,6 +151,10 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
         # Apache delivers Content-MD5 as a base64 digest. We are using hex.
         # @todo: it might be prudent to also check for endianness (unpack('h*'))
         Base64.decode64(checksum).unpack('H*').first
+      when :sidecar_md5, :sidecar_sha1
+        # if sidecar_source is set, use that as the url
+        # otherwise use source.<extension> depending on the checksum_type
+        # fetch the file and read the contents
     end
   end
 end

@@ -69,13 +69,42 @@ Puppet::Type.newtype(:httpfile) do
       The checksum type to use. Currenly only content_md5 is supported.
       Possible values are:
       
-      * content_md5 (32 bytes hex digest) - Content-MD5 header is used
+      * content_md5  (32 bytes hex digest) - Content-MD5 header is used
+      * sidecar_md5  (32 bytes hex digest) - sidecar md5 file is used
+      * sidecar_sha1 (40 bytes hex digest) - sidecar sha1 file is used
       
       Default: content_md5'
     EOT
 
-    newvalues :content_md5
+    newvalues :content_md5, :sidecar_md5, :sidecar_sha1
     defaultto :content_md5
+  end
+
+  newparam(:sidecar_source) do
+    desc <<-'EOT'
+      Sidecar URL to use for fetching the expected checksum. If this
+      parameter is not specified, it is assumed that the sidecar file
+      is placed next to :source and is named with an appropriate
+      extension (e.g. .md5 for sidecar_md5).
+    EOT
+
+    validate do |source|
+      begin
+        uri = URI.parse(URI.escape(source))
+      rescue => detail
+        fail "Invalid URL #{source}: #{detail}"
+      end
+
+      fail "Cannot use relative URLs '#{source}'" unless uri.absolute?
+      fail "Cannot use opaque URLs '#{source}'" unless uri.hierarchical?
+      unless %w{http https}.include?(uri.scheme)
+        fail "Cannot use URLs of type '#{uri.scheme}' as source for fileserving"
+      end
+    end
+
+    munge do |source|
+      URI.parse(URI.escape(source))
+    end
   end
 
   newparam(:expected_checksum) do
@@ -149,9 +178,13 @@ Puppet::Type.newtype(:httpfile) do
   validate do
     if self[:expected_checksum]
       case self[:checksum_type]
-      when :content_md5
+      when :content_md5, :sidecar_sha1
         unless self[:expected_checksum].match(/^[0-9][a-f]{32}$/)
           fail "Not a MD5 hex digest: '%s'." % self[:expected_checksum]
+        end
+      when :sidecar_sha1
+        unless self[:expected_checksum].match(/^[0-9][a-f]{40}$/)
+          fail "Not a SHA1 hex digest: '%s'." % self[:expected_checksum]
         end
       end
     end
