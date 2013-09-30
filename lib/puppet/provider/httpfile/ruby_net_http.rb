@@ -5,7 +5,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
 
   def create
     begin
-      req = http_request(resource[:http_verb])
+      req = http_request(resource[:http_verb], resource[:source])
       conn.request(req) do |res|
         fail "#{resource[:http_verb].upcase} #{resource[:source]} " +
              "returned #{res.code}" unless res.code == '200'
@@ -85,7 +85,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
   def http_head
     return @head if defined?(@head)
     begin
-      @head = conn.request(http_request(:head))
+      @head = conn.request(http_request(:head, resource[:source]))
       fail "#{resource[:http_verb].upcase} #{resource[:source]} " +
            "returned #{@head.code}" unless @head.code == '200'
     rescue Exception => e
@@ -95,22 +95,31 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
   end
 
   # Send a HTTP request
-  def http_request(verb)
+  def http_request(verb, uri, options = {})
+    opts = {
+      :form_data    => resource[:http_post_form_data],
+      :body         => resource[:http_request_body],
+      :headers      => resource[:http_request_headers],
+      :content_type => resource[:http_request_content_type],
+      :http_user    => resource[:http_user],
+      :http_pass    => resource[:http_pass],
+    }.merge(options)
+
     case verb.to_sym
     when :head
-      req = Net::HTTP::Head.new(resource[:source].request_uri)
+      req = Net::HTTP::Head.new(uri.request_uri)
     when :get
-      req = Net::HTTP::Get.new(resource[:source].request_uri)
+      req = Net::HTTP::Get.new(uri.request_uri)
     when :post
-      req = Net::HTTP::Post.new(resource[:source].request_uri)
-      req.set_form_data(resource[:http_post_form_data] || {})
+      req = Net::HTTP::Post.new(uri.request_uri)
+      req.set_form_data(opts[:form_data] || {})
     end
-    (resource[:http_request_headers] || {}).each do |header, value|
+    (opts[:headers] || {}).each do |header, value|
       req[header] = value
     end
-    req.body = resource[:http_request_body]
-    req.content_type = resource[:http_request_content_type] || ''
-    req.basic_auth resource[:http_user], resource[:http_pass]
+    req.body = opts[:body]
+    req.content_type = opts[:content_type] || ''
+    req.basic_auth opts[:http_user], opts[:http_pass]
     req
   end
 
@@ -145,16 +154,34 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
         checksum = http_head['Content-MD5']
 
         # Check support for Content-MD5
-        fail "Server #{resource[:source].host}:#{resource[:source].port} does not support the Content-MD5 " +
-          "header." unless checksum
+        fail "Server #{resource[:source].host}:#{resource[:source].port} does " +
+             "not support the Content-MD5 header." unless checksum
 
         # Apache delivers Content-MD5 as a base64 digest. We are using hex.
         # @todo: it might be prudent to also check for endianness (unpack('h*'))
         Base64.decode64(checksum).unpack('H*').first
       when :sidecar_md5, :sidecar_sha1
-        # if sidecar_source is set, use that as the url
-        # otherwise use source.<extension> depending on the checksum_type
-        # fetch the file and read the contents
+        ext  = resource[:checksum_type].to_s.split('_').last
+        url  = resource[:sidecar_source] || URI.parse("#{resource[:source]}.#{ext}")
+        verb = resource[:sidecar_http_verb] || resource[:http_verb]
+        request_opts = {
+          :form_data    => resource[:sidecar_http_post_form_data] || resource[:http_post_form_data],
+          :body         => resource[:sidecar_http_request_body] || resource[:http_request_body],
+          :headers      => resource[:sidecar_http_request_headers] || resource[:http_request_headers],
+          :content_type => resource[:sidecar_http_request_content_type] || resource[:http_request_content_type],
+          :http_user    => resource[:sidecar_http_user] || resource[:http_user],
+          :http_pass    => resource[:sidecar_http_pass] || resource[:http_pass],
+        }
+        req  = http_request(verb, url, request_opts)
+        res  = conn.request(req)
+        fail "Failed to fetch sidecar file. #{verb.upcase} #{url} " +
+             "returned #{res.code}" unless res.code == '200'
+        first_line = res.body.lines.first
+        # format example: "MD5(/path/to/file)= checksum"
+        match = first_line.match(/^(MD5|SHA1)\(.+\)= ([0-9a-f]+)$/i)
+        debug "#{url} - first line was: #{first_line}"
+        fail "failed to read checksum from #{url}" unless match
+        match[2]
     end
   end
 end

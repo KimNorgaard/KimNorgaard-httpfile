@@ -107,6 +107,12 @@ Puppet::Type.newtype(:httpfile) do
     end
   end
 
+  [:sidecar_http_verb, :sidecar_http_post_form_data, :sidecar_http_request_body,
+   :sidecar_http_request_headers, :sidecar_http_request_content_type,
+   :sidecar_http_user, :sidecar_http_pass].each do |parm|
+     newparam(parm)
+  end
+
   newparam(:expected_checksum) do
     desc 'The exptected checksum of the file.'
   end
