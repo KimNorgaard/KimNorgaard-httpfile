@@ -110,8 +110,7 @@ Puppet::Type.newtype(:httpfile) do
     end
   end
 
-  [:sidecar_http_post_form_data, :sidecar_http_request_body,
-   :sidecar_http_request_headers, :sidecar_http_request_content_type,
+  [:sidecar_http_request_body, :sidecar_http_request_content_type,
    :sidecar_http_user, :sidecar_http_pass].each do |parm|
      newparam(parm)
   end
@@ -153,10 +152,18 @@ Puppet::Type.newtype(:httpfile) do
   newparam(:http_request_headers) do
     desc 'HTTP Request Headers (Hash).'
     validate do |value|
-      value.is_a?(Hash)
+      fail "http_request_headers must be a Hash" unless value.is_a?(Hash)
     end
     defaultto {}
-  end
+  end 
+
+  newparam(:sidecar_http_request_headers) do
+    desc 'HTTP Request Headers of sidecar file (Hash).'
+    validate do |value|
+      fail "http_request_headers must be a Hash" unless value.is_a?(Hash)
+    end
+    defaultto {}
+  end 
 
   newparam(:http_request_body) do
     desc 'HTTP Request Body.'
@@ -165,7 +172,15 @@ Puppet::Type.newtype(:httpfile) do
   newparam(:http_post_form_data) do
     desc 'HTTP POST Form Data (hash). Only used when setting http_vers to :post.'
     validate do |value|
-      value.is_a?(Hash)
+      fail "http_post_form_data must be a Hash" unless value.is_a?(Hash)
+    end
+    defaultto {}
+  end
+
+  newparam(:sidecar_http_post_form_data) do
+    desc 'HTTP POST Form Data (hash) of sidecar file. Only used when setting http_vers to :post.'
+    validate do |value|
+      fail "http_post_form_data must be a Hash" unless value.is_a?(Hash)
     end
     defaultto {}
   end
