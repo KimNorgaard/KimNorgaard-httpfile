@@ -7,3 +7,7 @@ require 'puppetlabs_spec_helper/module_spec_helper'
   TestServer.new
 end
 sleep(1)
+
+RSpec.configure do |config|
+  config.mock_with :mocha
+end
