@@ -22,8 +22,10 @@ Puppet::Type.newtype(:httpfile) do
 
   newparam(:path, :namevar => true) do
     desc 'The destination path (including file name). Must be fully qualified.'
+    isrequired
 
     validate do |value|
+      fail Puppet::Error, "File path must be set to something." % value if value.empty?
       unless Puppet::Util.absolute_path?(value)
         fail "File path '%s' is not fully qualified." % value
       end
@@ -32,6 +34,7 @@ Puppet::Type.newtype(:httpfile) do
 
   newparam(:source) do
     desc 'The url of the file to be fetched. http and https are supported.'
+    isrequired
 
     validate do |source|
       begin
@@ -50,17 +53,17 @@ Puppet::Type.newtype(:httpfile) do
     munge do |source|
       URI.parse(URI.escape(source))
     end
-
-    isrequired
   end
 
   newparam(:force, :boolean => true) do
     desc 'Always download the file. Default: false.'
+    newvalues :true, :false
     defaultto false
   end
 
   newparam(:print_progress, :boolean => true) do
     desc 'Whether to print download progress or not. Default: false.'
+    newvalues :true, :false
     defaultto false
   end
 
@@ -125,6 +128,7 @@ Puppet::Type.newtype(:httpfile) do
 
   newparam(:http_ssl_verify, :boolean => true) do
     desc 'Enable/disable HTTPS Certificate Verification. Default: false.'
+    newvalues :true, :false
     defaultto false
   end
 
@@ -182,6 +186,10 @@ Puppet::Type.newtype(:httpfile) do
   end
 
   validate do
+    # http://projects.puppetlabs.com/issues/4049
+    raise ArgumentError, 'httpfile: source is required' unless self[:source]
+    raise ArgumentError, 'httpfile: path is required' unless self[:path]
+
     if self[:expected_checksum]
       case self[:checksum_type]
       when :content_md5, :sidecar_sha1
