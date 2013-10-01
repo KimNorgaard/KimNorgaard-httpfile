@@ -110,7 +110,7 @@ Puppet::Type.newtype(:httpfile) do
     end
   end
 
-  [:sidecar_http_verb, :sidecar_http_post_form_data, :sidecar_http_request_body,
+  [:sidecar_http_post_form_data, :sidecar_http_request_body,
    :sidecar_http_request_headers, :sidecar_http_request_content_type,
    :sidecar_http_user, :sidecar_http_pass].each do |parm|
      newparam(parm)
@@ -118,6 +118,11 @@ Puppet::Type.newtype(:httpfile) do
 
   newparam(:expected_checksum) do
     desc 'The exptected checksum of the file.'
+  end
+
+  newparam(:sidecar_http_verb) do
+    desc 'The HTTP verb to use for sidecar files (get or post). Default: :http_verb value.'
+    newvalues :get, :post
   end
 
   newparam(:http_verb) do
@@ -192,12 +197,12 @@ Puppet::Type.newtype(:httpfile) do
 
     if self[:expected_checksum]
       case self[:checksum_type]
-      when :content_md5, :sidecar_sha1
-        unless self[:expected_checksum].match(/^[0-9][a-f]{32}$/)
+      when :content_md5, :sidecar_md5
+        unless self[:expected_checksum].match(/^[0-9a-f]{32}$/)
           fail "Not a MD5 hex digest: '%s'." % self[:expected_checksum]
         end
       when :sidecar_sha1
-        unless self[:expected_checksum].match(/^[0-9][a-f]{40}$/)
+        unless self[:expected_checksum].match(/^[0-9a-f]{40}$/)
           fail "Not a SHA1 hex digest: '%s'." % self[:expected_checksum]
         end
       end
