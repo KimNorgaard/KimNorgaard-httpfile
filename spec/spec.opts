@@ -1,5 +1,5 @@
 --format
-p
+s
 --colour
 mtime
 --backtrace

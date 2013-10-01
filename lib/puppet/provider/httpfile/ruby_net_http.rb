@@ -60,7 +60,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
     true
   end
 
-  private
+  #private
 
   # Get HTTP connection
   def conn
@@ -112,7 +112,6 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
       req = Net::HTTP::Get.new(uri.request_uri)
     when :post
       req = Net::HTTP::Post.new(uri.request_uri)
-      req.set_form_data(opts[:form_data] || {})
     end
     (opts[:headers] || {}).each do |header, value|
       req[header] = value
@@ -120,6 +119,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
     req.body = opts[:body]
     req.content_type = opts[:content_type] || ''
     req.basic_auth opts[:http_user], opts[:http_pass]
+    req.set_form_data(opts[:form_data] || {}) if verb.to_sym == :post
     req
   end
 
