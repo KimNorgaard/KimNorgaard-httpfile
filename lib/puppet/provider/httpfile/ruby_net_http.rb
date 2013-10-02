@@ -37,6 +37,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
   def exists?
     # Check if the file exists
     return false unless File.exists? "#{resource[:name]}"
+    return true if File.exists?("#{resource[:name]}") and resource[:ensure] = :absent
 
     # Check if checksum checking is disabled
     if resource[:force]

@@ -6,8 +6,7 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http) do
   before :each do
     @provider = described_class
     Puppet::Type.type(:httpfile).stubs(:defaultprovider).returns @type
-    @valid_url = 'http://localhost:12345/ok_with_content_md5'
-    @url_sidecar = 'http://localhost:12345//ok_with_sidecar'
+    @valid_url = 'http://localhost:12345/test_ok'
     @url_404 = 'http://localhost:12345/404'
   end
 
@@ -151,13 +150,13 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http) do
 
       it "should calculate an md5-sum for sidecar_md5" do
         provider.resource[:checksum_type] = :sidecar_md5
-        provider.resource[:source] = @url_sidecar
+        #provider.resource[:source] = @valid_url
         provider.remote_checksum.should == '098f6bcd4621d373cade4e832627b4f6'
       end
 
       it "should calculate an md5-sum for sidecar_sha1" do
         provider.resource[:checksum_type] = :sidecar_sha1
-        provider.resource[:source] = @url_sidecar
+        #provider.resource[:source] = @valid_url
         provider.remote_checksum.should == 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
       end
     end

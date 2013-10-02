@@ -9,8 +9,7 @@ class TestServer
       AccessLog: [],
     )
 
-
-    server.mount_proc '/ok_with_content_md5' do |req, res|
+    server.mount_proc '/test_ok' do |req, res|
       body = "test"
       checksum = Digest::MD5.new.base64digest(body)
       res['Content-MD5'] = checksum
@@ -18,14 +17,14 @@ class TestServer
       res.status = 200
     end
 
-    server.mount_proc '/ok_with_sidecar.md5' do |req, res|
+    server.mount_proc '/test_ok.md5' do |req, res|
       res['Content-Type'] = 'text/plain'
       checksum = Digest::MD5.new.hexdigest('test')
       res.body = "MD5(ok_with_sidecar.md5)= #{checksum}"
       res.status = 200
     end
 
-    server.mount_proc '/ok_with_sidecar.sha1' do |req, res|
+    server.mount_proc '/test_ok.sha1' do |req, res|
       res['Content-Type'] = 'text/plain'
       checksum = Digest::SHA1.new.hexdigest('test')
       res.body = "SHA1(ok_with_sidecar.md5)= #{checksum}"
