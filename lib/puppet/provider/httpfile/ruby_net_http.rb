@@ -7,7 +7,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
     begin
       req = http_request(resource[:http_verb], resource[:source])
       conn.request(req) do |res|
-        fail "#{resource[:http_verb].upcase} #{resource[:source]} " +
+        fail "#{resource[:http_verb].to_s.upcase} #{resource[:source]} " +
              "returned #{res.code}" unless res.code == '200'
 
         out_file = File.open("#{resource[:name]}",'wb')
@@ -87,7 +87,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
     return @head if defined?(@head)
     begin
       @head = conn.request(http_request(:head, resource[:source]))
-      fail "#{resource[:http_verb].upcase} #{resource[:source]} " +
+      fail "#{resource[:http_verb].to_s.upcase} #{resource[:source]} " +
            "returned #{@head.code}" unless @head.code == '200'
     rescue Exception => e
       fail "Failed to fetch file: #{resource[:source]} - #{e.message}"
@@ -175,7 +175,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
         }
         req  = http_request(verb, url, request_opts)
         res  = conn.request(req)
-        fail "Failed to fetch sidecar file. #{verb.upcase} #{url} " +
+        fail "Failed to fetch sidecar file. #{verb.to_s.upcase} #{url} " +
              "returned #{res.code}" unless res.code == '200'
         first_line = res.body.lines.first
         # format example: "MD5(/path/to/file)= checksum"
