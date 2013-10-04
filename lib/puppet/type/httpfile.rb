@@ -1,5 +1,4 @@
 require 'puppet/type'
-require 'puppet/parameter/boolean'
 require 'uri'
 
 Puppet::Type.newtype(:httpfile) do
