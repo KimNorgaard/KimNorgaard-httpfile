@@ -119,7 +119,9 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
     end
     req.body = opts[:body]
     req.content_type = opts[:content_type] || ''
-    req.basic_auth opts[:http_user], opts[:http_pass]
+    if not opts[:http_user].nil? or not opts[:http_pass].nil?
+      req.basic_auth opts[:http_user], opts[:http_pass]
+    end
     req.set_form_data(opts[:form_data] || {}) if verb.to_sym == :post
     req
   end
