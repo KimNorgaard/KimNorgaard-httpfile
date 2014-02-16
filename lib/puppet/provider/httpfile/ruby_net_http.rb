@@ -37,7 +37,8 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
   def exists?
     # Check if the file exists
     return false unless File.exists? "#{resource[:name]}"
-    return true if File.exists?("#{resource[:name]}") and resource[:ensure] == :absent
+    return true if File.exists?("#{resource[:name]}") and
+                  resource[:ensure] == :absent
 
     # Check if checksum checking is disabled
     if resource[:force]
@@ -45,11 +46,14 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
       return false
     end
 
-    # Check remote checksum against the expected one, if one is specified
-    if resource[:expected_checksum] and resource[:expected_checksum] != remote_checksum
-      fail "#{resource[:source]} checksum (#{remote_checksum}) != expected " +
-           "checksum (#{resource[:expected_checksum]})."
-    end
+
+    # Check if the expected checksum matches the local one
+    return true if File.exists?("#{resource[:name]}") and
+                  resource[:expected_checksum] and
+                  resource[:expected_checksum] == local_checksum
+    return false if File.exists?("#{resource[:name]}") and
+                  resource[:expected_checksum] and
+                  resource[:expected_checksum] != local_checksum
 
     # Check the remote checksum against the local one
     if local_checksum != remote_checksum

@@ -53,6 +53,17 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http), '(integration)' 
     catalog.apply
   end
 
+  def run_in_catalog_with_report(*resources)
+    catalog = Puppet::Resource::Catalog.new
+    catalog.host_config = false
+    resources.each do |resource|
+      resource.expects(:err).never
+      catalog.add_resource(resource)
+    end
+    catalog.apply
+    catalog
+  end
+
   describe "while managing a httpfile resource" do
     context "when ensure is :absent" do
       it "should not do anything if file is absent" do
@@ -81,6 +92,36 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http), '(integration)' 
             end
           end
 
+          context "and expected_checksum matches existing local file" do
+            it "should not download the file" do
+              resource_present[:checksum_type] = checksum_type
+              resource_present[:expected_checksum] = case checksum_type
+              when :content_md5, :sidecar_md5
+                '098f6bcd4621d373cade4e832627b4f6'
+              when :sidecar_sha1
+                'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3'
+              end
+              expect(is_file?(resource_present[:path])).to be_true
+              trans = run_in_catalog(resource_present)
+              expect(trans.report.resource_statuses["Httpfile[#{resource_present[:path]}]"].changed).to be_false
+            end
+          end
+
+          context "and expected_checksum does not match existing local file" do
+            it "should download the file" do
+              resource_present[:checksum_type] = checksum_type
+              resource_present[:expected_checksum] = case checksum_type
+              when :content_md5, :sidecar_md5
+                '098f6bcd4621d373cade4e832627aaaa'
+              when :sidecar_sha1
+                'a94a8fe5ccb19ba61c4c0873d391e987982faaaa'
+              end
+              expect(is_file?(resource_present[:path])).to be_true
+              trans = run_in_catalog(resource_present)
+              expect(trans.report.resource_statuses["Httpfile[#{resource_present[:path]}]"].changed).to be_true
+            end
+          end
+
           context "when the checksums differ" do
             pending "should update the file"
           end
@@ -103,7 +144,6 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http), '(integration)' 
       pending "should work using different sidecar verbs"
       pending "should work with sidecar http options"
 
-      pending "should not download if the expected checksum does not match"
       pending "should fail if the downloaded file's checksum does not match the expected checksum"
 
       # maybe implement "double_check_checksum: true|false"
