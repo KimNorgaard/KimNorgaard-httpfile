@@ -187,7 +187,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
         # format example: "MD5(/path/to/file)= checksum"
         match = first_line.match(/^(MD5|SHA1)\(.+\)= ([0-9a-f]+)$/i)
         debug "#{url} - first line was: #{first_line}"
-        fail "failed to read checksum from #{url}" unless match
+        fail "failed to read checksum from #{url} - it should match: /^(MD5|SHA1)\\(.+\\)= ([0-9a-f]+)$/i" unless match
         match[2]
     end
   end
