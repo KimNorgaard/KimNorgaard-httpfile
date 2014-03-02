@@ -6,6 +6,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
   def create
     begin
       req = http_request(resource[:http_verb], resource[:source])
+      notice "Downloading #{resource[:source]}"
       conn.request(req) do |res|
         fail "#{resource[:http_verb].to_s.upcase} #{resource[:source]} " +
              "returned #{res.code}" unless res.code == '200'
