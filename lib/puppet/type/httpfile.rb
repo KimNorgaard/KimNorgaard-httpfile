@@ -144,6 +144,14 @@ Puppet::Type.newtype(:httpfile) do
          'certifications in PEM format'
   end
 
+  newparam(:http_ssl_cert) do
+    desc 'Sets path of a client certificate file in PEM format.'
+  end
+
+  newparam(:http_ssl_key) do
+    desc 'Sets path of a client key file in PEM format.'
+  end
+
   newparam(:http_request_content_type) do
     desc 'HTTP Request Content Type.'
   end
