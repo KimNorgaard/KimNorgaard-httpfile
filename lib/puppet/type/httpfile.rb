@@ -130,9 +130,9 @@ Puppet::Type.newtype(:httpfile) do
   end
 
   newparam(:http_ssl_verify, :boolean => true) do
-    desc 'Enable/disable HTTPS Certificate Verification. Default: false.'
+    desc 'Enable/disable HTTPS Certificate Verification. Default: true.'
     newvalues :true, :false
-    defaultto false
+    defaultto true
   end
 
   newparam(:http_ssl_ca_file) do
@@ -142,6 +142,14 @@ Puppet::Type.newtype(:httpfile) do
   newparam(:http_ssl_ca_path) do
     desc 'Sets path of a CA certification directory containing ' +
          'certifications in PEM format'
+  end
+
+  newparam(:http_ssl_cert) do
+    desc 'Sets path of a client certificate file in PEM format.'
+  end
+
+  newparam(:http_ssl_key) do
+    desc 'Sets path of a client key file in PEM format.'
   end
 
   newparam(:http_request_content_type) do

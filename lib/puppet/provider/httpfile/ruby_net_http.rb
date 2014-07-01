@@ -77,6 +77,8 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
       @conn.use_ssl = true
       @conn.ca_path = resource[:http_ssl_ca_path] if resource[:http_ssl_ca_path]
       @conn.ca_file = resource[:http_ssl_ca_file] if resource[:http_ssl_ca_file]
+      @conn.cert = OpenSSL::X509::Certificate.new(File.read(resource[:http_ssl_cert])) if resource[:http_ssl_cert]
+      @conn.key = OpenSSL::PKey::RSA.new(File.read(resource[:http_ssl_key])) if resource[:http_ssl_key]
       @conn.verify_mode = if resource[:http_ssl_verify]
         OpenSSL::SSL::VERIFY_PEER
       else
