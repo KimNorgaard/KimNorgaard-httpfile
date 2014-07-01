@@ -130,9 +130,9 @@ Puppet::Type.newtype(:httpfile) do
   end
 
   newparam(:http_ssl_verify, :boolean => true) do
-    desc 'Enable/disable HTTPS Certificate Verification. Default: false.'
+    desc 'Enable/disable HTTPS Certificate Verification. Default: true.'
     newvalues :true, :false
-    defaultto false
+    defaultto true
   end
 
   newparam(:http_ssl_ca_file) do
