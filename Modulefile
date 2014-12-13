@@ -1,5 +1,5 @@
 name         'KimNorgaard-httpfile'
-version      '0.1.6'
+version      '0.1.8'
 source       'git://github.com/KimNorgaard/KimNorgaard-httpfile.git'
 author       'Kim Norgaard'
 summary      'Custom type for downloading files via HTTP and HTTPS'

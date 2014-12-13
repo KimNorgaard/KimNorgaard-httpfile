@@ -42,7 +42,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
                   resource[:ensure] == :absent
 
     # Check if checksum checking is disabled
-    if resource[:force] == true
+    if resource[:force] === :true
       notice "force option enabled - downloading file regardless of checksum."
       return false
     end
@@ -79,7 +79,7 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
       @conn.ca_file = resource[:http_ssl_ca_file] if resource[:http_ssl_ca_file]
       @conn.cert = OpenSSL::X509::Certificate.new(File.read(resource[:http_ssl_cert])) if resource[:http_ssl_cert]
       @conn.key = OpenSSL::PKey::RSA.new(File.read(resource[:http_ssl_key])) if resource[:http_ssl_key]
-      @conn.verify_mode = if resource[:http_ssl_verify] == true
+      @conn.verify_mode = if resource[:http_ssl_verify] === :true
         OpenSSL::SSL::VERIFY_PEER
       else
         OpenSSL::SSL::VERIFY_NONE
