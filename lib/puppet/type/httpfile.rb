@@ -114,8 +114,15 @@ Puppet::Type.newtype(:httpfile) do
      newparam(parm)
   end
 
+  newparam(:quick_check, :boolean => true) do
+    desc 'Skips checksum comparison and relies solely on rsync style "quick ' +
+         'checks" where we only compare the timestamp and size. Default: false.'
+    newvalues :true, :false
+    defaultto false
+  end
+
   newparam(:expected_checksum) do
-    desc 'The exptected checksum of the file.'
+    desc 'The exptected checksum of the file. This option is mutually exclusive with quick_check.'
   end
 
   newparam(:sidecar_http_verb) do
@@ -218,6 +225,8 @@ Puppet::Type.newtype(:httpfile) do
     raise ArgumentError, 'httpfile: path is required' unless self[:path]
 
     if self[:expected_checksum]
+      fail "expected_checksum and quick_check are mutually exclusive" if self[:quick_check]
+
       case self[:checksum_type]
       when :content_md5, :sidecar_md5
         unless self[:expected_checksum].match(/^[0-9a-f]{32}$/)

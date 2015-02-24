@@ -1,3 +1,4 @@
+require 'date'
 require 'net/http'
 
 Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
@@ -43,18 +44,21 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
 
     # Check if checksum checking is disabled
     if resource[:force] === :true
-      notice "force option enabled - downloading file regardless of checksum."
+      notice "force option enabled - downloading file regardless."
       return false
     end
 
+    # For quick checks, we just want to compare the local file's size
+    # and timestamp against the remote file.
+    if resource[:quick_check]
+        return false if local_size != remote_size
+        return local_modified_time >= remote_modified_time
+    end
 
     # Check if the expected checksum matches the local one
-    return true if File.exists?("#{resource[:name]}") and
-                  resource[:expected_checksum] and
-                  resource[:expected_checksum] == local_checksum
-    return false if File.exists?("#{resource[:name]}") and
-                  resource[:expected_checksum] and
-                  resource[:expected_checksum] != local_checksum
+    if resource[:expected_checksum]
+        return resource[:expected_checksum] == local_checksum
+    end
 
     # Check the remote checksum against the local one
     if local_checksum != remote_checksum
@@ -193,5 +197,30 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
         fail "failed to read checksum from #{url} - it should match: /^(MD5|SHA1)\\(.+\\)= ([0-9a-f]+)$/i" unless match
         match[2]
     end
+  end
+
+  # Get local file size in bytes.
+  def local_size
+    return @local_size if defined?(@local_size)
+    @local_size = File.size("#{resource[:name]}")
+  end
+
+  # Get remote file size in bytes (content-length).
+  def remote_size
+    return @remote_size if defined?(@remote_size)
+    @remote_size = http_head['Content-Length'].to_i
+  end
+
+  # Get local modification time (mtime) as a DateTime object.
+  def local_modified_time
+      return @local_modified_time if defined?(@local_modified_time)
+      filename = "#{resource[:name]}"
+      @local_modified_time = DateTime.parse("#{File.mtime(filename)}")
+  end
+
+  # Get remote modification time (last-modified) as a DateTime object.
+  def remote_modified_time
+      return @remote_modified_time if defined?(@remote_modified_time)
+      @remote_modified_time = DateTime.parse(http_head['Last-Modified'])
   end
 end
