@@ -27,6 +27,19 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
         end
         out_file.close()
       end
+
+      # Check that the file we downloaded is correct.
+      unless resource[:quick_check]
+          # Remove cached checksum from exists? call because we now have a new
+          # local file to recheck.
+          remove_instance_variable(:@local_checksum) if defined?(@local_checksum)
+
+          if resource[:expected_checksum]
+              fail "expected_checksum doesn't match downloaded file." unless resource[:expected_checksum] == local_checksum
+          else
+              fail "remote checksum doesn't match downloaded file." unless remote_checksum == local_checksum
+          end
+      end
     rescue Exception => e
       fail "Failed to fetch file: #{resource[:source]} - #{e.message}"
     end
@@ -51,7 +64,10 @@ Puppet::Type.type(:httpfile).provide(:ruby_net_http) do
     # For quick checks, we just want to compare the local file's size
     # and timestamp against the remote file.
     if resource[:quick_check]
+        Puppet.debug("#{resource[:name]} local/remote size: #{local_size}/#{remote_size} bytes")
         return false if local_size != remote_size
+
+        Puppet.debug("#{resource[:name]} local/remote mtime: #{local_modified_time} vs. #{remote_modified_time}")
         return local_modified_time >= remote_modified_time
     end
 
