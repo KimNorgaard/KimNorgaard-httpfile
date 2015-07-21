@@ -92,7 +92,7 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http), '(integration)' 
             end
           end
 
-          context "and expected_checksum matches existing local file" do
+          context "and :expected_checksum matches existing local file" do
             it "should not download the file" do
               resource_present[:checksum_type] = checksum_type
               resource_present[:expected_checksum] = case checksum_type
@@ -107,8 +107,8 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http), '(integration)' 
             end
           end
 
-          context "and expected_checksum does not match existing local file" do
-            it "should download the file" do
+          context "and :expected_checksum does not match existing local file" do
+            it "should not download the file" do
               resource_present[:checksum_type] = checksum_type
               resource_present[:expected_checksum] = case checksum_type
               when :content_md5, :sidecar_md5
@@ -118,7 +118,7 @@ describe Puppet::Type.type(:httpfile).provider(:ruby_net_http), '(integration)' 
               end
               expect(is_file?(resource_present[:path])).to be_true
               trans = run_in_catalog(resource_present)
-              expect(trans.report.resource_statuses["Httpfile[#{resource_present[:path]}]"].changed).to be_true
+              expect(trans.report.resource_statuses["Httpfile[#{resource_present[:path]}]"].changed).to be_false
             end
           end
 
